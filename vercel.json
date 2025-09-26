@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/chadrick.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "nodejs20.x"
     }
   }
 }
