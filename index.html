@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chadrick - Joseph's AI Bro</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            width: 90%;
+            height: calc(100vh - 150px);
+            margin: 50px auto 0;
+            max-width: 1200px;
+        }
+        #chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            border: 2px solid #ff6b35; /* Orange border for gym theme */
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #chat-window {
+            flex-grow: 1;
+            background-color: rgba(187, 187, 187, 0.95); /* Semi-transparent to show background */
+            border-top: 1px solid #ff6b35;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        #chat-form {
+            display: flex;
+            border-top: 1px solid #ff6b35;
+            padding: 5px;
+            background-color: rgba(46, 46, 46, 0.95);
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 5px;
+            font-family: "Courier New", Courier, monospace;
+            border: 1px solid #ff6b35;
+            outline: none;
+            resize: none;
+            height: 100px;
+            line-height: 1.5;
+            background-color: #333;
+            color: white;
+        }
+        #chat-form button {
+            padding: 5px 10px;
+            margin-left: 5px;
+            background-color: #ff6b35;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        #chat-form button:hover {
+            background-color: #e55a2b;
+        }
+        .chat-message {
+            margin-bottom: 8px;
+        }
+        .user-name {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .user-you {
+            color: #007BFF;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px #222;
+        }
+        .user-chadrick {
+            color: #ff6b35;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px #222;
+        }
+        .user-system {
+            color: #666;
+            font-style: italic;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #222;
+        }
+        .message-content {
+            display: inline;
+        }
+        .message-content ul, .message-content ol {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding-left: 25px;
+        }
+        .message-content li {
+            margin-bottom: 3px;
+        }
+        .message-content pre {
+            background-color: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 5px 0;
+            position: relative;
+        }
+        .message-content code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .message-content p {
+            margin: 5px 0;
+        }
+        #title-bar {
+            background-color: #2e2e2e;
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #ff6b35;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        #title-bar img {
+            height: 75px;
+            width: auto;
+            margin-right: 10px;
+        }
+        #title-bar span {
+            font-size: 50px;
+            line-height: 50px;
+        }
+        #status-indicator-container {
+            display: flex;
+            align-items: center;
+        }
+        #status-indicator {
+            height: 15px;
+            width: 15px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin-right: 10px;
+        }
+        #status-text {
+            font-size: 25px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+        }
+        .status-connected { background-color: #28a745 !important; }
+        .status-error { background-color: #dc3545 !important; }
+        .status-loading { background-color: #ffc107 !important; }
+        .text-connected { color: #28a745; }
+        .text-error { color: #dc3545; }
+        .text-loading { color: #ffc107; }
+        .copy-btn {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            z-index: 2;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            background: #fff;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .copy-btn:hover {
+            opacity: 1;
+        }
+        body.chadrick-mode {
+            background: url('chadbackground.png') no-repeat center center fixed;
+            background-size: cover;
+        }
+        #model-indicator {
+            font-weight: normal !important;
+            font-size: 13px !important;
+            font-style: italic !important;
+            margin-left: 8px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+</head>
+<body class="chadrick-mode">
+
+<h1 style="margin-bottom: 0; padding-left: 30px; color: #ff6b35;">Joseph's AI Bro</h1>
+<p style="font-size: 15px; margin-top: 0; padding-left: 30px; color: #fff;">
+    <em>Your personal coding and study assistant</em>
+</p>
+
+<div id="container">
+    <div class="link-box" id="chat-box">
+        <div id="title-bar">
+            <div>
+                <img id="character-icon" src="chadrick.png" alt="Character Icon">
+                <span id="character-name">CHADRICK</span> <span id="model-indicator">(ready to help...)</span>
+            </div>
+            <div id="status-indicator-container">
+                <div id="status-indicator"></div>
+                <div id="status-text" class="text-error"></div>
+            </div>
+        </div>
+        <div id="chat-window">
+            <div class="chat-message">
+                <span class="user-name user-chadrick">CHADRICK:</span>
+                <div class="message-content">Yo Joseph! 💪 Chadrick here, ready to help you crush your schoolwork and coding projects. What are we working on today, bro?</div>
+            </div>
+        </div>
+        <form id="chat-form" onsubmit="return false;">
+            <textarea id="user-input" placeholder="Ask me about homework, coding, or anything you need help with..." autocomplete="off"></textarea>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Global variables
+    let messageCount = 0;
+    let chadrickPassword = "";
+    let conversationHistory = [];
+
+    // DOM Elements
+    const chatForm = document.getElementById('chat-form');
+    const chatWindow = document.getElementById('chat-window');
+    const userInput = document.getElementById('user-input');
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+    const characterIcon = document.getElementById('character-icon');
+    const characterName = document.getElementById('character-name');
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>\"']/g, function(m) {
+            switch (m) {
+                case '&': return '&amp;';
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '"': return '&quot;';
+                case "'": return '&#39;';
+            }
+        });
+    }
+
+    function escapeBackticks(str) {
+        return str.replace(/\\/g, '\\\\').replace(/`/g, '\\`');
+    }
+
+    function renderMessageWithCodeBlocks(text) {
+        const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+        let lastIndex = 0;
+        let result = '';
+        let match;
+        
+        while ((match = codeBlockRegex.exec(text)) !== null) {
+            result += text.slice(lastIndex, match.index);
+            const lang = match[1] ? match[1].toLowerCase() : '';
+            const code = escapeHtml(match[2]);
+            const langClass = lang ? `language-${lang}` : '';
+            result += `<pre><button class="copy-btn" data-code="${escapeBackticks(match[2])}" title="Copy code">Copy</button><code class="${langClass}">${code}</code></pre>`;
+            lastIndex = codeBlockRegex.lastIndex;
+        }
+        result += text.slice(lastIndex);
+        return result;
+    }
+
+    function appendMessage(username, text, className) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message');
+        
+        const usernameSpan = document.createElement('span');
+        usernameSpan.classList.add('user-name', className);
+        usernameSpan.textContent = username + ':';
+        messageDiv.appendChild(usernameSpan);
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('message-content');
+        
+        if (username === 'CHADRICK') {
+            contentDiv.innerHTML = renderMessageWithCodeBlocks(text);
+        } else if (/<[a-z][\s\S]*>/i.test(text)) {
+            contentDiv.innerHTML = text;
+        } else {
+            contentDiv.textContent = text;
+        }
+        
+        messageDiv.appendChild(contentDiv);
+        chatWindow.appendChild(messageDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+        if (username === 'CHADRICK') {
+            contentDiv.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+    }
+
+    function setThinkingStatus() {
+        statusIndicator.classList.remove('status-connected', 'status-error');
+        statusIndicator.classList.add('status-loading');
+        statusText.textContent = "THINKING";
+        statusText.className = "text-loading";
+    }
+
+    function updateConnectionStatus(isConnected) {
+        statusIndicator.classList.remove('status-connected', 'status-error', 'status-loading');
+        statusText.className = '';
+        
+        if (isConnected) {
+            statusIndicator.classList.add('status-connected');
+            statusText.textContent = "READY";
+            statusText.className = "text-connected";
+        } else {
+            statusIndicator.classList.add('status-error');
+            statusText.textContent = "ERROR";
+            statusText.className = "text-error";
+        }
+    }
+
+    function sendMessage(message) {
+        if (!message.trim()) return;
+
+        // If more than 5 messages, prompt for password if not already entered
+        if (messageCount >= 5 && !chadrickPassword) {
+            chadrickPassword = prompt("Message limit reached. Please enter the password to continue:");
+            if (!chadrickPassword) {
+                appendMessage('SYSTEM', 'No password entered. Cannot continue.', 'user-system');
+                return;
+            }
+        }
+
+        appendMessage('JOSEPH', message, 'user-you');
+        conversationHistory.push({ role: 'user', content: message });
+        userInput.value = '';
+        setThinkingStatus();
+
+        fetch('/api/chadrick', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message,
+                count: messageCount + 1,
+                password: chadrickPassword,
+                history: conversationHistory
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                appendMessage('SYSTEM', data.error, 'user-system');
+                // If password was wrong, reset so user can try again
+                if (data.error.toLowerCase().includes('password')) {
+                    chadrickPassword = "";
+                }
+                return;
+            }
+            
+            let reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content
+                ? data.choices[0].message.content
+                : 'No response from OpenAI.';
+            
+            appendMessage('CHADRICK', reply, 'user-chadrick');
+            conversationHistory.push({ role: 'assistant', content: reply });
+            
+            let modelName = data.model || 'OpenAI';
+            document.getElementById('model-indicator').textContent = `(running on ${modelName})`;
+            updateConnectionStatus(true);
+            messageCount++;
+        })
+        .catch(error => {
+            console.error('Error fetching from server:', error);
+            const errorMessage = "Sorry bro, I couldn't connect to the server. Let's try again!";
+            appendMessage('CHADRICK', errorMessage, 'user-chadrick');
+            document.getElementById('model-indicator').textContent = '(Server: error)';
+            updateConnectionStatus(false);
+        });
+    }
+
+    function setupEventListeners() {
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendMessage(userInput.value);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('copy-btn')) {
+                const code = e.target.getAttribute('data-code');
+                navigator.clipboard.writeText(code.replace(/\\`/g, '`').replace(/\\\\/g, '\\'));
+                e.target.textContent = 'Copied!';
+                setTimeout(() => { e.target.textContent = 'Copy'; }, 1200);
+            }
+        });
+    }
+
+    function initialize() {
+        setupEventListeners();
+        conversationHistory = [];
+        document.getElementById('model-indicator').textContent = '(ready to help...)';
+        userInput.focus();
+    }
+
+    initialize();
+</script>
+
+</body>
+</html>
